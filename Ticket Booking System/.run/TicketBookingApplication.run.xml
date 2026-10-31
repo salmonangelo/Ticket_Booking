@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TicketBookingApplication" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.ticketbooking.TicketBookingApplication" />
+    <module name="ticket-booking-system" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
+

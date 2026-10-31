@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShowPass - Modern Ticket Booking System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <div class="brand" onclick="switchTab('browse')">
+                <span class="brand-icon">🎟️</span>
+                <span class="brand-text">Show<span class="brand-highlight">Pass</span></span>
+            </div>
+
+            <nav class="nav-links">
+                <button class="nav-btn active" id="navBrowse" onclick="switchTab('browse')">
+                    <span class="icon">🎬</span> Browse Shows
+                </button>
+                <button class="nav-btn" id="navMyBookings" onclick="switchTab('my-bookings')">
+                    <span class="icon">🎫</span> My Bookings
+                </button>
+                <button class="nav-btn" id="navAdmin" onclick="switchTab('admin')">
+                    <span class="icon">📊</span> Admin Panel
+                </button>
+            </nav>
+
+            <div class="nav-status">
+                <span class="status-indicator online"></span>
+                <span class="status-text">XAMPP MySQL Active</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: BROWSE SHOWS & EVENTS               -->
+        <!-- ========================================== -->
+        <section id="browseTab" class="tab-content active">
+            <!-- Hero Banner -->
+            <div class="hero-banner">
+                <div class="hero-content">
+                    <h1>Experience Live Moments</h1>
+                    <p>Book tickets for the biggest movies, live concerts, stand-up comedy, and sports events.</p>
+                </div>
+            </div>
+
+            <!-- Controls: Search & Category Filters -->
+            <div class="filter-bar">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="eventSearchInput" placeholder="Search by movie or event name..." oninput="handleSearch()">
+                </div>
+
+                <div class="category-pills" id="categoryPills">
+                    <button class="pill-btn active" onclick="filterByCategory('ALL')">All</button>
+                    <button class="pill-btn" onclick="filterByCategory('Movie')">Movies</button>
+                    <button class="pill-btn" onclick="filterByCategory('Concert')">Concerts</button>
+                    <button class="pill-btn" onclick="filterByCategory('Comedy')">Comedy</button>
+                    <button class="pill-btn" onclick="filterByCategory('Theater')">Theater</button>
+                    <button class="pill-btn" onclick="filterByCategory('Sports')">Sports</button>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div class="events-grid" id="eventsGrid">
+                <!-- Dynamically populated by JS -->
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading available shows...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: MY BOOKINGS                         -->
+        <!-- ========================================== -->
+        <section id="myBookingsTab" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>My Bookings</h2>
+                    <p class="subtitle">Search and manage your tickets using your Booking ID or registered Email.</p>
+                </div>
+            </div>
+
+            <div class="booking-search-card">
+                <div class="search-form">
+                    <input type="text" id="bookingSearchQuery" placeholder="Enter Booking Code (e.g. BK-123456AB) or Email address...">
+                    <button class="btn btn-primary" onclick="searchBookings()">Search Tickets</button>
+                    <button class="btn btn-secondary" onclick="loadAllUserBookings()">View All</button>
+                </div>
+            </div>
+
+            <div class="bookings-list" id="bookingsList">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: ADMIN PANEL                         -->
+        <!-- ========================================== -->
+        <section id="adminTab" class="tab-content">
+            <div class="section-header">
+                <div>
+                    <h2>Admin Dashboard</h2>
+                    <p class="subtitle">Overview of system revenue, seat reservations, and show management.</p>
+                </div>
+                <button class="btn btn-primary" onclick="openAddEventModal()">+ Create New Event</button>
+            </div>
+
+            <!-- Stats Metric Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon purple">🎬</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Active Events</span>
+                        <h3 id="statTotalEvents">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">🎟️</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Bookings</span>
+                        <h3 id="statTotalBookings">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon cyan">👥</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Tickets Sold</span>
+                        <h3 id="statTicketsSold">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon gold">💰</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Revenue</span>
+                        <h3 id="statTotalRevenue">$0.00</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Events Management Table -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h3>Manage Events</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Category</th>
+                                <th>Venue</th>
+                                <th>Date & Time</th>
+                                <th>Price</th>
+                                <th>Seats</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminEventsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Admin Bookings Log Table -->
+            <div class="table-card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <h3>Recent Bookings Audit</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Event</th>
+                                <th>Customer</th>
+                                <th>Seats</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminBookingsTableBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================== -->
+    <!-- MODAL: SEAT SELECTION & CHECKOUT           -->
+    <!-- ========================================== -->
+    <div id="seatModal" class="modal-overlay">
+        <div class="modal-box seat-modal-box">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalEventTitle">Select Your Seats</h3>
+                    <p class="subtitle" id="modalEventSubtitle">Venue Details</p>
+                </div>
+                <button class="close-btn" onclick="closeSeatModal()">&times;</button>
+            </div>
+
+            <div class="seat-booking-layout">
+                <!-- Left: Seat Map -->
+                <div class="seat-map-wrapper">
+                    <div class="screen-indicator">
+                        <div class="screen-curve"></div>
+                        <span>STAGE / SCREEN</span>
+                    </div>
+
+                    <!-- Seat Legend -->
+                    <div class="seat-legend">
+                        <div class="legend-item"><span class="legend-seat available"></span> Available</div>
+                        <div class="legend-item"><span class="legend-seat selected"></span> Selected</div>
+                        <div class="legend-item"><span class="legend-seat occupied"></span> Booked</div>
+                        <div class="legend-item"><span class="legend-badge vip">Row A-B: VIP (+25%)</span></div>
+                        <div class="legend-item"><span class="legend-badge econ">Row E: Economy (-15%)</span></div>
+                    </div>
+
+                    <!-- Seat Grid Container -->
+                    <div id="seatGrid" class="seat-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Right: Booking Form & Checkout Summary -->
+                <div class="checkout-panel">
+                    <h4>Booking Summary</h4>
+
+                    <div class="summary-details">
+                        <div class="summary-row">
+                            <span>Selected Seats:</span>
+                            <span id="selectedSeatsLabel" class="bold-text">None</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Ticket Count:</span>
+                            <span id="selectedSeatsCount" class="bold-text">0</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span>Total Price:</span>
+                            <span id="totalPriceLabel" class="price-highlight">$0.00</span>
+                        </div>
+                    </div>
+
+                    <form id="bookingForm" onsubmit="submitBooking(event)">
+                        <div class="form-group">
+                            <label for="custName">Full Name *</label>
+                            <input type="text" id="custName" required placeholder="John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label for="custEmail">Email Address *</label>
+                            <input type="email" id="custEmail" required placeholder="john@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="custPhone">Phone Number *</label>
+                            <input type="tel" id="custPhone" required placeholder="+1 555-0199">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentMethod">Payment Method</label>
+                            <select id="paymentMethod">
+                                <option value="Credit/Debit Card">Credit / Debit Card</option>
+                                <option value="UPI / Instant Pay">UPI / Instant Pay</option>
+                                <option value="Net Banking">Net Banking</option>
+                                <option value="Cash at Counter">Cash at Counter</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" id="confirmBookingBtn" class="btn btn-primary btn-block" disabled>
+                            Confirm Booking & Pay
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: DIGITAL TICKET / BOARDING PASS      -->
+    <!-- ========================================== -->
+    <div id="ticketModal" class="modal-overlay">
+        <div class="modal-box ticket-modal-box">
+            <div class="modal-header no-border">
+                <span class="success-badge">✓ Booking Confirmed</span>
+                <button class="close-btn" onclick="closeTicketModal()">&times;</button>
+            </div>
+
+            <div class="digital-ticket" id="printableTicket">
+                <div class="ticket-top">
+                    <div class="ticket-brand">ShowPass E-Ticket</div>
+                    <div class="ticket-code" id="ticketCode">BK-000000</div>
+                </div>
+
+                <div class="ticket-body">
+                    <h2 id="ticketEventTitle">Interstellar: IMAX Special</h2>
+                    <p class="ticket-venue" id="ticketVenue">PVR Superplex IMAX - Screen 1</p>
+
+                    <div class="ticket-grid">
+                        <div class="ticket-meta">
+                            <span class="meta-label">DATE</span>
+                            <span class="meta-val" id="ticketDate">2026-11-01</span>
+                        </div>
+                        <div class="ticket-meta">
+                            <span class="meta-label">TIME</span>
+                            <span class="meta-val" id="ticketTime">19:00</span>
+                        </div>
+                        <div class="ticket-meta">
+                            <span class="meta-label">SEATS</span>
+                            <span class="meta-val highlight" id="ticketSeats">A1, A2</span>
+                        </div>
+                        <div class="ticket-meta">
+                            <span class="meta-label">AMOUNT</span>
+                            <span class="meta-val" id="ticketAmount">$30.00</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-customer">
+                        <div>
+                            <span class="meta-label">PASSENGER / GUEST</span>
+                            <div class="meta-val" id="ticketCustomer">John Doe</div>
+                        </div>
+                        <div>
+                            <span class="meta-label">PAYMENT</span>
+                            <div class="meta-val" id="ticketPayment">Card (Paid)</div>
+                        </div>
+                    </div>
+
+                    <div class="barcode-sim">
+                        <div class="barcode-lines"></div>
+                        <span class="barcode-num" id="ticketBarcodeText">SHOWPASS-BK-89312</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-actions">
+                <button class="btn btn-primary" onclick="printTicket()">🖨️ Print / Save Ticket</button>
+                <button class="btn btn-secondary" onclick="closeTicketModal()">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: ADD / EDIT EVENT (ADMIN)            -->
+    <!-- ========================================== -->
+    <div id="addEventModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="eventModalTitle">Create New Event</h3>
+                <button class="close-btn" onclick="closeAddEventModal()">&times;</button>
+            </div>
+            <form id="addEventForm" onsubmit="saveEvent(event)">
+                <input type="hidden" id="editEventId">
+
+                <div class="form-group">
+                    <label for="eventTitle">Event Title *</label>
+                    <input type="text" id="eventTitle" required placeholder="e.g. Inception Re-Release">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventCategory">Category *</label>
+                        <select id="eventCategory" required>
+                            <option value="Movie">Movie</option>
+                            <option value="Concert">Concert</option>
+                            <option value="Comedy">Comedy</option>
+                            <option value="Theater">Theater</option>
+                            <option value="Sports">Sports</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventVenue">Venue / Hall *</label>
+                        <input type="text" id="eventVenue" required placeholder="Cinema 1 / Grand Arena">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventDate">Show Date *</label>
+                        <input type="date" id="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventTime">Show Time *</label>
+                        <input type="text" id="eventTime" required placeholder="e.g. 19:30">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventPrice">Base Ticket Price ($) *</label>
+                        <input type="number" id="eventPrice" step="0.50" min="1" required placeholder="15.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="eventSeats">Total Seats *</label>
+                        <input type="number" id="eventSeats" min="10" max="100" value="50" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="eventImage">Poster Image URL</label>
+                    <input type="url" id="eventImage" placeholder="https://images.unsplash.com/...">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventDesc">Description</label>
+                    <textarea id="eventDesc" rows="3" placeholder="Brief event synopsis or details..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddEventModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Event</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+</body>
+</html>
+
